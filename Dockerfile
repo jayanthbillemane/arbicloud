@@ -11,10 +11,7 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 80 available to the world outside this container
-EXPOSE 80
+EXPOSE 5000
 
-# Define environment variable
-ENV NAME World
-
-# Run the FastAPI app using uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+# Run the FastAPI app using Gunicorn
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "main:app", "-b", "0.0.0.0:5000"]
