@@ -13,10 +13,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# def validate_origin(origin: str = Header(...)):
-#     if origin != "https://www.arbi.cloud/" or:
-#         raise HTTPException(status_code=403, detail="Forbidden")
-
 # Define a route for the root endpoint "/"
 @app.get("/test")
 def read_root():
