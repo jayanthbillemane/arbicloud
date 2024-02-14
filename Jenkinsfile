@@ -18,7 +18,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'SERVER', variable: 'SERVER')]) {
                     // Use Jenkins credentials to retrieve values securely
                     withCredentials([
-                        usernamePassword(credentialsId: 'creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD'),
+                        usernamePassword(credentialsId: '81710b21-7d87-40d1-8e05-6c2a17e9662f', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD'),
                         file(credentialsId: 'pemid', variable: 'PEM_FILE')
                     ]) {
 
