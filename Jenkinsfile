@@ -15,7 +15,7 @@ pipeline {
             }
             steps {
                 // Retrieve the server credential
-                withCredentials([string(credentialsId: 'server', variable: 'SERVER')]) {
+                withCredentials([string(credentialsId: 'dev', variable: 'dev')]) {
                     // Use Jenkins credentials to retrieve values securely
                     withCredentials([
                         usernamePassword(credentialsId: 'creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD'),
