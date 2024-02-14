@@ -15,7 +15,6 @@ pipeline {
             }
             steps {
                 // Retrieve the server credential
-                withCredentials([string(credentialsId: '81710b21-7d87-40d1-8e05-6c2a17e9662f', variable: 'dev')]) {
                     // Use Jenkins credentials to retrieve values securely
                     withCredentials([
                         usernamePassword(credentialsId: 'creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD'),
@@ -31,7 +30,7 @@ pipeline {
                         sh "echo '$PASSWORD' | ssh -o StrictHostKeyChecking=no -i $PEM_FILE $USERNAME@$SERVER 'cd /home/azureuser/arbifrontend && git pull && echo \"$PASSWORD\" | sudo -S docker-compose build && sudo -S docker-compose up -d'"
 
                     }
-                }
+                
             }
         }
     }
