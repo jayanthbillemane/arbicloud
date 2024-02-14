@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the code from Git repository
-                git branch: 'dev', url: 'https://github.com/jayanthbillemane/arbifrontend'
+                git branch: 'dev', url: 'https://github.com/jayanthbillemane/arbicloud'
                 echo 'Checked out code successfully'
             }
         }
