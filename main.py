@@ -21,6 +21,6 @@ app.add_middleware(
 @app.get("/test")
 def read_root():
     data = [{"id": 1, "name": "Jayantha BS", "Profession": "Fullstack Developer", "Experience": "5 Years",
-            "company": ["EFI", "Risk Advisors Inc", "Medilenz", "CamcomAI"],"hobi":"Cricket"
+            "company": ["EFI", "Risk Advisors Inc", "Medilenz", "CamcomAI","Open to work"],"hobi":"Cricket"
             }]
     return JSONResponse(content=data, headers={"Custom-Header": "value"})
