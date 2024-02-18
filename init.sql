@@ -1,11 +1,11 @@
 -- Create database
-CREATE DATABASE tasks_db;
+CREATE DATABASE tasks;
 
 -- Connect to the database
-\c tasks_db;
+\c tasks;
 
 -- Create table
-CREATE TABLE tasks_db (
+CREATE TABLE list_user (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     image VARCHAR(255) NOT NULL
