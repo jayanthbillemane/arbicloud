@@ -148,7 +148,7 @@ def updateCache(seconds):
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     try:
         task_id = create_task_in_db(db, task.name, task.image)
-        return {"status":"success","id": task_id, "name": task.name, "image": task.image}
+        return {"status":"success update","id": task_id, "name": task.name, "image": task.image}
     except Exception as e:
         logging.error(f"Error occurred while creating task: {e}")
         raise HTTPException(status_code=500, detail="Failed to create task")
@@ -170,7 +170,7 @@ def read_task(task_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     # Store task in cache
     # redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
-    return {"id": task.id, "name": task.name, "image": task.image}
+    return {"status":"success update","id": task.id, "name": task.name, "image": task.image}
 
 @app.get("/tasks/", response_model=TaskResponse)
 # @updateCache(seconds=60)  # Cache for 60 seconds
@@ -188,7 +188,7 @@ def read_all_task(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     # Store task in cache
     # redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
-    return {"id": task.id, "name": task.name, "image": task.image}
+    return {"status":"success update","id": task.id, "name": task.name, "image": task.image}
 
 
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
