@@ -16,7 +16,7 @@ import logging
 from functools import wraps
 from fastapi import HTTPException
 # from fastapi.requests import Request
-import redis
+# import redis
 
 
 # from starlette.requests import Request
@@ -30,7 +30,7 @@ DATABASE_URL = "postgresql://root:root@postgres:5432/tasks_db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-redis_client = redis.Redis(host='redis', port=6379, db=0)
+# redis_client = redis.Redis(host='redis', port=6379, db=0)
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -144,7 +144,7 @@ def updateCache(seconds):
     return decorator
 
 @app.post("/tasks/", response_model=TaskResponse)
-@updateCache(seconds=60)  # Cache for 60 seconds
+# @updateCache(seconds=60)  # Cache for 60 seconds
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     try:
         task_id = create_task_in_db(db, task.name, task.image)
@@ -155,7 +155,7 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
-@updateCache(seconds=60)  # Cache for 60 seconds
+# @updateCache(seconds=60)  # Cache for 60 seconds
 def read_task(task_id: int, db: Session = Depends(get_db)):
     # Generate cache key for this endpoint and task_id
     key = f"read_task:{json.dumps([task_id], default=str)}"
@@ -173,7 +173,7 @@ def read_task(task_id: int, db: Session = Depends(get_db)):
         return {"id": task.id, "name": task.name, "image": task.image}
 
 @app.get("/tasks/", response_model=TaskResponse)
-@updateCache(seconds=60)  # Cache for 60 seconds
+# @updateCache(seconds=60)  # Cache for 60 seconds
 def read_all_task(db: Session = Depends(get_db)):
     # Generate cache key for this endpoint and task_id
     key = f"read_task:{json.dumps([task_id], default=str)}"
