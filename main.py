@@ -12,11 +12,11 @@ import redis
 from functools import wraps
 import json
 # import json
-import redis
 import logging
 from functools import wraps
 from fastapi import HTTPException
 # from fastapi.requests import Request
+import redis
 
 
 # from starlette.requests import Request
