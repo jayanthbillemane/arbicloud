@@ -30,7 +30,7 @@ DATABASE_URL = "postgresql://root:root@postgres:5432/tasks_db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-redis_client = redis.StrictRedis(host='redis', port=6379, db=0)
+redis_client = redis.Redis(host='redis', port=6379, db=0)
 
 class Task(Base):
     __tablename__ = "tasks"
