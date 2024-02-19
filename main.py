@@ -138,7 +138,7 @@ def updateCache(seconds):
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     try:
         task_id = create_task_in_db(db, task.name, task.image)
-        return {"id": task_id, "name": task.name, "image": task.image}
+        return {"status":"success","id": task_id, "name": task.name, "image": task.image}
     except Exception as e:
         logging.error(f"Error occurred while creating task: {e}")
         raise HTTPException(status_code=500, detail="Failed to create task")
