@@ -160,35 +160,35 @@ def read_task(task_id: int, db: Session = Depends(get_db)):
     # Generate cache key for this endpoint and task_id
     key = f"read_task:{json.dumps([task_id], default=str)}"
     # Check if data is present in cache
-    cached_data = redis_client.get(key)
-    if cached_data:
-        return json.loads(cached_data.decode())
-    else:
-        # Retrieve task from the database
-        task = get_task_from_db(db, task_id)
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
-        # Store task in cache
-        redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
-        return {"id": task.id, "name": task.name, "image": task.image}
+    # cached_data = redis_client.get(key)
+    # if cached_data:
+    #     return json.loads(cached_data.decode())
+    # else:
+    # Retrieve task from the database
+    task = get_task_from_db(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    # Store task in cache
+    # redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
+    return {"id": task.id, "name": task.name, "image": task.image}
 
 @app.get("/tasks/", response_model=TaskResponse)
 # @updateCache(seconds=60)  # Cache for 60 seconds
 def read_all_task(db: Session = Depends(get_db)):
     # Generate cache key for this endpoint and task_id
-    key = f"read_task:{json.dumps([task_id], default=str)}"
+    # key = f"read_task:{json.dumps([task_id], default=str)}"
     # Check if data is present in cache
-    cached_data = redis_client.get(key)
-    if cached_data:
-        return json.loads(cached_data.decode())
-    else:
+    # cached_data = redis_client.get(key)
+    # if cached_data:
+    #     return json.loads(cached_data.decode())
+    # else:
         # Retrieve task from the database
-        task = get_task_all_from_db(db, task_id)
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
-        # Store task in cache
-        redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
-        return {"id": task.id, "name": task.name, "image": task.image}
+    task = get_task_all_from_db(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    # Store task in cache
+    # redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
+    return {"id": task.id, "name": task.name, "image": task.image}
 
 
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
@@ -197,7 +197,7 @@ def update_task(task_id: int, task: TaskCreate, db: Session = Depends(get_db)):
     if not updated_task:
         raise HTTPException(status_code=404, detail="Task not found")
     # Invalidate cache for this task
-    invalidate_cache("read_task", task_id)
+    # invalidate_cache("read_task", task_id)
     return {"id": updated_task.id, "name": updated_task.name, "image": updated_task.image}
 
 @app.delete("/tasks/{task_id}", response_model=TaskResponse)
