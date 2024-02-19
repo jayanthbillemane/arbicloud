@@ -8,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 import psycopg2
+import redis
+from functools import wraps
+import json
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -17,6 +20,7 @@ DATABASE_URL = "postgresql://root:root@postgres:5432/tasks_db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+redis_client = redis.StrictRedis(host='redis', port=6379, db=0)
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -40,7 +44,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://example.com", "http://localhost:30"],
+    allow_origins=["https://www.arbi.cloud/", "http://localhost:30"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,6 +67,9 @@ def create_task_in_db(db: Session, name: str, image: str) -> int:
 def get_task_from_db(db: Session, task_id: int) -> Task:
     return db.query(Task).filter(Task.id == task_id).first()
 
+def get_task_all_from_db(db: Session, task_id: int) -> Task:
+    return db.query(Task)
+
 def update_task_in_db(db: Session, task_id: int, name: str, image: str) -> Task:
     task = get_task_from_db(db, task_id)
     if task:
@@ -80,15 +87,16 @@ def delete_task_from_db(db: Session, task_id: int) -> Task:
     return task
 
 # Define Redis caching decorator
+
 def cache(seconds):
     def decorator(f):
         def wrapper(*args, **kwargs):
             # Generate cache key based on function name and arguments
-            key = f.__name__ + ":" + "_".join(map(str, args)) + "_" + "_".join(map(str, kwargs.items()))
+            key = f"{f.__name__}:{json.dumps(args)}:{json.dumps(kwargs)}"
             # Check if data is present in cache
             cached_data = redis_client.get(key)
             if cached_data:
-                return JSONResponse(content=cached_data, headers={"Cache-Control": f"max-age={seconds}"})
+                return JSONResponse(content=cached_data.decode(), headers={"Cache-Control": f"max-age={seconds}"})
             else:
                 # Execute the original function
                 result = f(*args, **kwargs)
@@ -98,21 +106,80 @@ def cache(seconds):
         return wrapper
     return decorator
 
+# Define the cache decorator
+def updateCache(seconds):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            logging.info("Inside redis function",args,kwargs)
+            # Generate cache key based on function name and arguments
+            key = f"{f.__name__}:{json.dumps(args, default=str)}:{json.dumps(kwargs, default=str)}"
+            # Check if data is present in cache
+            cached_data = redis_client.get(key)
+            if cached_data:
+                logging.info("Getting data from redis function")
+                
+                return json.loads(cached_data.decode())
+            else:
+                logging.info("Adding data to redis function")
+                
+                # Execute the original function
+                result = f(*args, **kwargs)
+                logging.info("Added redis ",result)
+                
+                # Store result in cache
+                redis_client.setex(key, seconds, json.dumps(result, default=str))
+                return result
+        return wrapper
+    return decorator
 
-# CRUD operations with caching
 @app.post("/tasks/", response_model=TaskResponse)
-@cache(seconds=60)  # Cache for 60 seconds
+@updateCache(seconds=60)  # Cache for 60 seconds
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    task_id = create_task_in_db(db, task.name, task.image)
-    return {"id": task_id, "name": task.name, "image": task.image}
+    try:
+        task_id = create_task_in_db(db, task.name, task.image)
+        return {"id": task_id, "name": task.name, "image": task.image}
+    except Exception as e:
+        logging.error(f"Error occurred while creating task: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create task")
+
 
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
-@cache(seconds=60)  # Cache for 60 seconds
+@updateCache(seconds=60)  # Cache for 60 seconds
 def read_task(task_id: int, db: Session = Depends(get_db)):
-    task = get_task_from_db(db, task_id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return {"id": task.id, "name": task.name, "image": task.image}
+    # Generate cache key for this endpoint and task_id
+    key = f"read_task:{json.dumps([task_id], default=str)}"
+    # Check if data is present in cache
+    cached_data = redis_client.get(key)
+    if cached_data:
+        return json.loads(cached_data.decode())
+    else:
+        # Retrieve task from the database
+        task = get_task_from_db(db, task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        # Store task in cache
+        redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
+        return {"id": task.id, "name": task.name, "image": task.image}
+
+@app.get("/tasks/", response_model=TaskResponse)
+@updateCache(seconds=60)  # Cache for 60 seconds
+def read_all_task(db: Session = Depends(get_db)):
+    # Generate cache key for this endpoint and task_id
+    key = f"read_task:{json.dumps([task_id], default=str)}"
+    # Check if data is present in cache
+    cached_data = redis_client.get(key)
+    if cached_data:
+        return json.loads(cached_data.decode())
+    else:
+        # Retrieve task from the database
+        task = get_task_all_from_db(db, task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        # Store task in cache
+        redis_client.setex(key, 60, json.dumps({"id": task.id, "name": task.name, "image": task.image}))
+        return {"id": task.id, "name": task.name, "image": task.image}
+
 
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
 def update_task(task_id: int, task: TaskCreate, db: Session = Depends(get_db)):
